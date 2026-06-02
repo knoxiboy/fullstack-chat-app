@@ -135,6 +135,10 @@ export async function sendMessage(req, res) {
         const senderId = req.userId;
         const { message, image, audio, replyTo } = req.body;
 
+        if (!message?.trim() && !image && !audio) {
+            return res.status(400).json({ message: "Message content cannot be empty" });
+        }
+
         let imageUrl = "";
         if (image) {
             const result = await cloudinary.uploader.upload(image);
