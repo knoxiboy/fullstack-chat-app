@@ -21,6 +21,9 @@ export default function useTypingIndicator(receiverId) {
      * Prevents flood overflows by blocking outgoing keystroke events during active intervals.
      */
     const emitTyping = useCallback(() => {
+    // GSSoC Issue #51 Fix
+    const lastEmitRef = useRef(0);
+    const emitTyping = () => {
         const socket = getSocket();
         
         // Prevent event execution if socket links or receiver targets are unmapped
@@ -38,6 +41,12 @@ export default function useTypingIndicator(receiverId) {
         }
 
         // Establish debounce timers to safely detect when user input halts completely
+        const now = Date.now();
+        if (now - lastEmitRef.current > 1000) {
+            socket.emit("typing", { receiverId });
+            lastEmitRef.current = now;
+        }
+        if (timeoutRef.current) clearTimeout(timeoutRef.current);
         timeoutRef.current = setTimeout(() => {
             socket.emit("stopTyping", { receiverId });
             isTypingEmitRef.current = false; // Open the throttle gates for subsequent loops
