@@ -132,6 +132,10 @@ export async function getMessages(req, res) {
 export async function sendMessage(req, res) {
     try {
         const { id: receiverId } = req.params;
+        // GSSoC Issue #57 Fix
+        if (!receiverId) {
+            return res.status(400).json({ message: "Receiver ID is required" });
+        }
         const senderId = req.userId;
         const { message, image, audio, replyTo } = req.body;
 
