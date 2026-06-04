@@ -211,7 +211,7 @@ export async function getMessages(req, res) {
 // ── POST /messages/send/:id ──────────────────────────────────────
 /**
  * Handles sending text, image, and voice messages to a specific user.
- * HARDENED SECURITY: Validates incoming file signatures on raw base64 allocations.
+ * Triggers socket events or offline web-push notifications.
  * @param {Object} req - Express request object.
  * @param {Object} res - Express response object.
  */
@@ -233,6 +233,7 @@ export async function sendMessage(req, res) {
             return res.status(400).json({ message: "Message content cannot be empty" });
         }
 
+        // OPTIMIZATION: Only fetch the push subscription and name to limit memory use
         const receiverUser = await User.findById(receiverId).select("name pushSubscription");
         if (!receiverUser) {
             return res.status(404).json({ message: "Receiver user not found" });
@@ -284,6 +285,7 @@ export async function sendMessage(req, res) {
             } catch (pushErr) {
                 console.error("Web push error:", pushErr.message);
                 if (pushErr.statusCode === 410 || pushErr.statusCode === 404) {
+                    // Have to execute a fresh update since we limited fields on the initial query
                     await User.findByIdAndUpdate(receiverId, { pushSubscription: null });
                     console.log(`Cleared expired push subscription for user ${receiverId}`);
                 }
@@ -300,6 +302,7 @@ export async function sendMessage(req, res) {
 // ── DELETE /messages/:id ─────────────────────────────────────────
 /**
  * Deletes a message and emits a deletion event to relevant sockets.
+ * Enforces ownership validation before deletion.
  * @param {Object} req - Express request object.
  * @param {Object} res - Express response object.
  */
