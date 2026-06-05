@@ -54,6 +54,7 @@ export default function ChatWindow({ selectedUser, onBack, isMobileHidden }) {
     const [searchOpen, setSearchOpen] = useState(false)
     const [searchQuery, setSearchQuery] = useState("")
     const [searchResults, setSearchResults] = useState([])
+    const [recentSearches, setRecentSearches] = useState([])
 
     // Debounced search trigger
     useEffect(() => {
@@ -62,11 +63,36 @@ export default function ChatWindow({ selectedUser, onBack, isMobileHidden }) {
             return;
         }
         const timer = setTimeout(async () => {
-            const results = await searchTextMessages(selectedUser._id, searchQuery);
-            setSearchResults(results || []);
-        }, 300);
+    const results = await searchTextMessages(
+        selectedUser._id,
+        searchQuery
+    );
+
+    setSearchResults(results || []);
+
+    const updatedSearches = [
+        searchQuery,
+        ...recentSearches.filter(
+            item => item !== searchQuery
+        )
+    ].slice(0, 5);
+
+    setRecentSearches(updatedSearches);
+
+    localStorage.setItem(
+        "recentSearches",
+        JSON.stringify(updatedSearches)
+    );
+}, 300);
         return () => clearTimeout(timer);
     }, [searchQuery, selectedUser?._id]);
+    useEffect(() => {
+    const savedSearches = JSON.parse(
+        localStorage.getItem("recentSearches") || "[]"
+    );
+
+    setRecentSearches(savedSearches);
+}, []);
 
     const scrollToMessage = (msgId) => {
         const msgElement = document.getElementById(`msg-${msgId}`);
