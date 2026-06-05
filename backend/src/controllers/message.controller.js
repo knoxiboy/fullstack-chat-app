@@ -379,6 +379,10 @@ export async function reactToMessage(req, res) {
         const { emoji } = req.body;
         const userId = req.userId;
 
+        if (typeof emoji !== "string" || emoji.length === 0 || emoji.length > 10) {
+            return res.status(400).json({ message: "Invalid emoji" });
+        }
+
         const message = await Message.findById(id);
         if (!message) return res.status(404).json({ message: "Message not found" });
 
