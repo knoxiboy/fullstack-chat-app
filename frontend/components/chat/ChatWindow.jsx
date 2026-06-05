@@ -372,6 +372,18 @@ export default function ChatWindow({ selectedUser, onBack, isMobileHidden }) {
                 <ReplyBar replyTo={replyTo} authUser={authUser} selectedUser={selectedUser} onCancel={() => setReplyTo(null)} />
             )}
 
+            <div className="px-4 py-2 flex flex-wrap gap-2">
+    {["👍 Sounds good", "Thanks!", "I'll check", "Okay"].map((reply) => (
+        <button
+            key={reply}
+            onClick={() => setText(reply)}
+            className="btn btn-xs btn-outline"
+        >
+            {reply}
+        </button>
+    ))}
+</div>
+
             {imagePreview && (
                 <div className="px-4 pb-2">
                     <div className="relative inline-block">
