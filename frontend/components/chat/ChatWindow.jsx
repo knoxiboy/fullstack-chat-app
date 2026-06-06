@@ -50,6 +50,7 @@ export default function ChatWindow({ selectedUser, onBack, isMobileHidden }) {
     const [sending, setSending] = useState(false)
     const [replyTo, setReplyTo] = useState(null)
     const [showEmoji, setShowEmoji] = useState(false)
+    const [showSpamWarning, setShowSpamWarning] = useState(false)
 
     // Search state
     const [searchOpen, setSearchOpen] = useState(false)
@@ -209,7 +210,16 @@ export default function ChatWindow({ selectedUser, onBack, isMobileHidden }) {
     }
 
     const handleTyping = (e) => {
-        setText(e.target.value)
+        const value = e.target.value
+setText(value)
+
+const suspiciousWords = ["spam", "scam", "fake", "hack"]
+
+setShowSpamWarning(
+    suspiciousWords.some(word =>
+        value.toLowerCase().includes(word)
+    )
+)
         // Auto-resize textarea up to ~4 lines
         const ta = textareaRef.current
         if (ta) {
@@ -401,6 +411,12 @@ export default function ChatWindow({ selectedUser, onBack, isMobileHidden }) {
                     </div>
                 </div>
             )}
+
+            {showSpamWarning && (
+    <div className="mx-3 mb-2 alert alert-warning py-2 text-sm">
+        ⚠️ This message may contain potentially harmful or spam-related content.
+    </div>
+)}
 
             <div className="px-3 py-3 border-t border-base-200 flex items-end gap-2 relative shrink-0 safe-bottom">
                 {showEmoji && (
