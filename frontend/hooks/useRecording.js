@@ -106,8 +106,6 @@ export default function useRecording() {
      * releases hardware tracks without saving to Base64 state.
      */
     const cancelRecording = useCallback(() => {
-        isCanceledRef.current = true; // Prevents the onstop event from saving the file
-    const cancelRecording = () => {
         isCancelledRef.current = true;
         if (mediaRecorderRef.current && isRecording) {
             mediaRecorderRef.current.stop();
