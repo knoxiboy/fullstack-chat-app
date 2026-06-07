@@ -13,11 +13,13 @@ import useBookmarkStore from "../../src/store/useBookmarkStore"
 import useRecording from "../../hooks/useRecording"
 import useTypingIndicator from "../../hooks/useTypingIndicator"
 import useContextMenu from "../../hooks/useContextMenu"
+import axiosInstance from "../../lib/axios"
 import Avatar from "./Avatar"
 import ContextMenu from "./ContextMenu"
 import ReplyBar from "./ReplyBar"
 import EmojiPicker from "./EmojiPicker"
 import MessageBubble from "./MessageBubble"
+import SmartReplySuggestions from "./SmartReplySuggestions"
 import ScheduleMessageModal from "./ScheduleMessageModal"
 
 const formatRecordingTime = (s) => `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, "0")}`
@@ -58,6 +60,9 @@ export default function ChatWindow({ selectedUser, onBack, isMobileHidden }) {
     const [replyTo, setReplyTo] = useState(null)
     const [showEmoji, setShowEmoji] = useState(false)
     const [showScheduleModal, setShowScheduleModal] = useState(false)
+    const [quickReplies, setQuickReplies] = useState([])
+    const [quickRepliesLoading, setQuickRepliesLoading] = useState(false)
+    const [latestIncomingMessageId, setLatestIncomingMessageId] = useState(null)
 
     // Search state
     const [searchOpen, setSearchOpen] = useState(false)
@@ -149,6 +154,47 @@ export default function ChatWindow({ selectedUser, onBack, isMobileHidden }) {
             if (hasUnseen) markMessagesAsSeen(selectedUser._id);
         }
     }, [selectedUser?._id, messages.length]);
+
+    useEffect(() => {
+        const lastMessage = messages[messages.length - 1];
+
+        if (!selectedUser?._id || !lastMessage || lastMessage.senderId !== selectedUser._id) {
+            setQuickReplies([])
+            setLatestIncomingMessageId(null)
+            setQuickRepliesLoading(false)
+            return
+        }
+
+        if (lastMessage._id === latestIncomingMessageId) return
+
+        const loadSuggestions = async () => {
+            setQuickRepliesLoading(true)
+            try {
+                const res = await axiosInstance.get(`/messages/suggestions/${lastMessage._id}`)
+                setQuickReplies(res.data.suggestions || [])
+            } catch (error) {
+                setQuickReplies([])
+            } finally {
+                setQuickRepliesLoading(false)
+                setLatestIncomingMessageId(lastMessage._id)
+            }
+        }
+
+        loadSuggestions()
+    }, [messages, selectedUser?._id, latestIncomingMessageId])
+
+    const handleSendQuickReply = async (replyText) => {
+        if (!replyText.trim()) return
+
+        setQuickReplies([])
+        setText(replyText)
+        setSending(true)
+
+        await sendMessage({ message: replyText, image: "", audio: "", replyTo: null })
+
+        setText("")
+        setSending(false)
+    }
 
     // Scroll to bottom on new messages — but NOT when older messages are prepended by loadMore
     const prevMsgCountRef = useRef(0)
@@ -422,17 +468,11 @@ export default function ChatWindow({ selectedUser, onBack, isMobileHidden }) {
                 <ReplyBar replyTo={replyTo} authUser={authUser} selectedUser={selectedUser} onCancel={() => setReplyTo(null)} />
             )}
 
-            <div className="px-4 py-2 flex flex-wrap gap-2">
-    {["👍 Sounds good", "Thanks!", "I'll check", "Okay"].map((reply) => (
-        <button
-            key={reply}
-            onClick={() => setText(reply)}
-            className="btn btn-xs btn-outline"
-        >
-            {reply}
-        </button>
-    ))}
-</div>
+            <SmartReplySuggestions
+                suggestions={quickReplies}
+                loading={quickRepliesLoading}
+                onSelect={handleSendQuickReply}
+            />
 
             {imagePreview && (
                 <div className="px-4 pb-2">
