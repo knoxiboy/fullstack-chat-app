@@ -12,6 +12,8 @@ import connectDB from "./lib/db.js";
 import authRoutes from "./routes/auth.route.js";
 import messageRoutes from "./routes/message.route.js";
 import analyticsRoutes from "./routes/analytics.route.js";
+import scheduledMessageRoutes from "./routes/scheduledMessage.route.js";
+import { startScheduler, stopScheduler } from "./lib/messageScheduler.js";
 import { app, server } from "./lib/socket.js";
 
 const PORT = process.env.PORT || 5001;
@@ -61,6 +63,7 @@ const messageLimiter = rateLimit({
 // Primary Endpoint Route Mappings
 app.use("/api/auth", authLimiter, authRoutes);
 app.use("/api/messages", messageLimiter, messageRoutes);
+app.use("/api/messages", messageLimiter, scheduledMessageRoutes);
 app.use("/api/analytics", analyticsRoutes);
 
 /**
@@ -103,6 +106,7 @@ server.listen(PORT, () => {
     // GSSoC Issue #45 Fix
     console.log(`[INFO] Server successfully running on port ${PORT}`);
     connectDB();
+    startScheduler();
 });
 
 // Global Process Exception Listeners Hardened Against Leak Vectors
@@ -117,5 +121,6 @@ process.on("uncaughtException", (err) => {
     } else {
         console.error("Uncaught exception stack trace details:", err);
     }
+    stopScheduler();
     process.exit(1);
 });
