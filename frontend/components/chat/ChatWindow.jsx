@@ -18,6 +18,7 @@ import ContextMenu from "./ContextMenu"
 import ReplyBar from "./ReplyBar"
 import EmojiPicker from "./EmojiPicker"
 import MessageBubble from "./MessageBubble"
+import ScheduleMessageModal from "./ScheduleMessageModal"
 
 const formatRecordingTime = (s) => `${Math.floor(s / 60)}:${(s % 60).toString().padStart(2, "0")}`
 
@@ -56,6 +57,7 @@ export default function ChatWindow({ selectedUser, onBack, isMobileHidden }) {
     const [sending, setSending] = useState(false)
     const [replyTo, setReplyTo] = useState(null)
     const [showEmoji, setShowEmoji] = useState(false)
+    const [showScheduleModal, setShowScheduleModal] = useState(false)
     const [showSpamWarning, setShowSpamWarning] = useState(false)
     const [showInsights, setShowInsights] = useState(false)
     const [showPoll, setShowPoll] = useState(false)
@@ -703,19 +705,18 @@ const mediaMessages = messages.filter(
                         </button>
                         <input type="file" ref={fileRef} accept="image/*" className="hidden" onChange={handleImage} />
                         <button
+                            onClick={() => setShowScheduleModal(true)}
+                            disabled={!text.trim() && !imageBase64 && !audioBase64}
+                            className="btn btn-ghost btn-sm btn-square shrink-0"
+                            title="Schedule Message"
+                        >
+                            <Clock className="w-4 h-4 text-base-content/50" />
+                        </button>
+                        <button
                             onClick={(e) => { e.stopPropagation(); setShowEmoji(v => !v) }}
                             className={`btn btn-ghost btn-sm btn-square shrink-0 ${showEmoji ? "text-primary" : "text-base-content/50"}`}
                             title="Emoji"
                         >
-                            <button
-    onClick={() =>
-        toast.success("Message scheduling coming soon!")
-    }
-    className="btn btn-ghost btn-sm btn-square shrink-0"
-    title="Schedule Message"
->
-    <Clock className="w-4 h-4 text-base-content/50" />
-</button>
                             <Smile className="w-4 h-4" />
                         </button>
                         <textarea
@@ -744,6 +745,17 @@ const mediaMessages = messages.filter(
                     )
                 )}
             </div>
+
+            <ScheduleMessageModal
+                isOpen={showScheduleModal}
+                onClose={() => setShowScheduleModal(false)}
+                receiverId={selectedUser?._id}
+                messageContent={{
+                    message: text,
+                    image: imageBase64,
+                    audio: audioBase64,
+                }}
+            />
         </div>
     )
 }
