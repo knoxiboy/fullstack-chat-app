@@ -45,7 +45,7 @@ const ScheduleMessageModal = ({
                 scheduledFor,
             });
             onClose();
-        } catch (error) {
+        } catch {
             // Error is already toasted by the store
         } finally {
             setIsScheduling(false);
@@ -76,7 +76,7 @@ const ScheduleMessageModal = ({
                 scheduledFor,
             });
             onClose();
-        } catch (error) {
+        } catch {
             // Error is already toasted by the store
         } finally {
             setIsScheduling(false);

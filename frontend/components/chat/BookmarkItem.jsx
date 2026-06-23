@@ -2,7 +2,6 @@ import { Trash2, ArrowRight } from "lucide-react"
 import BookmarkBadge from "./BookmarkBadge"
 
 export default function BookmarkItem({ bookmark, onOpen, onRemove }) {
-  const preview = bookmark.content || bookmark.image ? "Image message" : bookmark.audio ? "Voice note" : "No preview available"
   const dateLabel = new Date(bookmark.createdAt).toLocaleString([], {
     year: "numeric",
     month: "short",

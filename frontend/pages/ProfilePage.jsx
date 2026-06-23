@@ -2,9 +2,10 @@ import { useEffect, useState } from "react"
 import { Camera, Pencil } from "lucide-react"
 import useAuthStore from "../src/store/useAuthStore"
 import StatusMoodSelector from "../components/StatusMoodSelector"
+import toast from "react-hot-toast"
 
 export default function ProfilePage() {
-    const { authUser: user, updateProfile, updateProfilePicture, isLoading } = useAuthStore()
+    const { authUser: user, updateProfile, updateProfilePicture, updateStatusMood, isLoading } = useAuthStore()
     const [formData, setFormData] = useState({
         name: user?.name || "",
     })
@@ -14,7 +15,9 @@ export default function ProfilePage() {
     const [selectedMood, setSelectedMood] = useState(user?.statusMood || null)
 
     useEffect(() => {
-        setSelectedMood(user?.statusMood || null)
+        Promise.resolve().then(() => {
+            setSelectedMood(user?.statusMood || null)
+        })
     }, [user?.statusMood])
 
     const handleMoodChange = async (mood) => {

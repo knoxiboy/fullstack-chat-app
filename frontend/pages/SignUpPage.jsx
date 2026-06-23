@@ -10,20 +10,8 @@ export default function SignUpPage() {
     const [showPassword, setShowPassword] = useState(false)
     const [formData, setFormData] = useState({name: "",email: "",password: "",confirmPassword: ""})
 
-    const passwordStrength = [
-        formData.password.length >= 8,
-        /[A-Z]/.test(formData.password),
-        /[a-z]/.test(formData.password),
-        /\d/.test(formData.password),
-        /[@#$!%&*]/.test(formData.password),
-    ].filter(Boolean).length
-
-
     const handleSubmit = async (e) => {
         e.preventDefault()
-
-        const passwordRegex =
-            /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@#$!%&*])[A-Za-z\d@#$!%&*]{8,}$/
 
         if (formData.password !== formData.confirmPassword) {
             toast.error("Passwords do not match")

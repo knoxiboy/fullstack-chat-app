@@ -86,7 +86,9 @@ export default function SettingsPage() {
     const [selectedMood, setSelectedMood] = useState(authUser?.statusMood || null)
 
     useEffect(() => {
-        setSelectedMood(authUser?.statusMood || null)
+        Promise.resolve().then(() => {
+            setSelectedMood(authUser?.statusMood || null)
+        })
     }, [authUser?.statusMood])
 
     const handleMoodChange = async (mood) => {

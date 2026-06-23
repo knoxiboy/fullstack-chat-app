@@ -2,7 +2,7 @@ import { create } from "zustand";
 import toast from "react-hot-toast";
 import axiosInstance from "../../lib/axios";
 
-const useScheduledMessageStore = create((set, get) => ({
+const useScheduledMessageStore = create((set) => ({
     scheduledMessages: [],
     isLoading: false,
     selectedMessage: null,

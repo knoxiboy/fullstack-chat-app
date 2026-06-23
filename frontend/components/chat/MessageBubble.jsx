@@ -10,7 +10,6 @@ const formatTime = (d) =>
 export default function MessageBubble({ msg, isMine, showTime, selectedUser, isOnline, authUser, onContextMenu, onTouchStart, onTouchEnd, onReact }) {
 
     const [showTranslation, setShowTranslation] = useState(false)
-    const [selectedImage, setSelectedImage] = useState(null)
     const [isSelected, setIsSelected] = useState(false)
 
     const getTranslatedText = (text) => {
@@ -93,7 +92,6 @@ export default function MessageBubble({ msg, isMine, showTime, selectedUser, isO
         src={msg.image}
         alt="attachment"
         className="max-w-full rounded-lg mb-1 cursor-pointer hover:opacity-90 transition"
-        onClick={() => setSelectedImage(msg.image)}
     />
 )}
                     
@@ -121,11 +119,9 @@ export default function MessageBubble({ msg, isMine, showTime, selectedUser, isO
         </p>
 
         <button 
-    key={emoji}
-    title={`${count} reaction${count > 1 ? "s" : ""}`}
-    onClick={(e) => { e.stopPropagation(); onReact(msg._id, emoji); }}
-    className={`text-xs px-1.5 py-0.5 rounded-full shadow-sm hover:scale-110 hover:shadow-md transition-all ${isMine ? "bg-primary-focus text-primary-content border border-white/20" : "bg-base-100 text-base-content border border-base-300"}`}
->
+            onClick={(e) => { e.stopPropagation(); setShowTranslation(!showTranslation); }}
+            className={`text-xs px-1.5 py-0.5 rounded-full shadow-sm hover:scale-110 hover:shadow-md transition-all ${isMine ? "bg-primary-focus text-primary-content border border-white/20" : "bg-base-100 text-base-content border border-base-300"}`}
+        >
             <Languages className="w-3 h-3" />
             {showTranslation
                 ? "Show Original"

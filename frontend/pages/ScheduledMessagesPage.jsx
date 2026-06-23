@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Calendar, Clock, Edit2, Trash2, Send } from "lucide-react";
+import { Calendar, Edit2, Trash2, Send } from "lucide-react";
 import useScheduledMessageStore from "../src/store/useScheduledMessageStore";
 
 const ScheduledMessagesPage = () => {
@@ -8,7 +8,6 @@ const ScheduledMessagesPage = () => {
         isLoading,
         fetchScheduledMessages,
         cancelScheduledMessage,
-        setSelectedMessage,
     } = useScheduledMessageStore();
 
     const [filterStatus, setFilterStatus] = useState("pending");

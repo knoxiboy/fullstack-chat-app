@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback, useLayoutEffect } from "react"
 import {
-    Image, Images, Send, X, MessageSquare,
+    Image, Images, Send, X,
     ArrowLeft, Smile, Mic, Square,Loader2, 
     Phone, Video, Trash2,Search, FileText,
     NotebookPen, BarChart3, Sparkles, PenTool, Compass, Clock
@@ -67,7 +67,6 @@ export default function ChatWindow({ selectedUser, onBack, isMobileHidden }) {
     const [quickRepliesLoading, setQuickRepliesLoading] = useState(false)
     const [latestIncomingMessageId, setLatestIncomingMessageId] = useState(null)
     const [showSpamWarning, setShowSpamWarning] = useState(false)
-    const [showInsights, setShowInsights] = useState(false)
     const [showPoll, setShowPoll] = useState(false)
     const [showNotes, setShowNotes] = useState(false)
     const [sharedNotes, setSharedNotes] = useState("")
@@ -84,41 +83,42 @@ export default function ChatWindow({ selectedUser, onBack, isMobileHidden }) {
     // Debounced search trigger
     useEffect(() => {
         if (!searchQuery.trim()) {
-            setSearchResults([]);
+            Promise.resolve().then(() => setSearchResults([]));
             return;
         }
         const timer = setTimeout(async () => {
             if (!selectedUser?._id) return;
-    const results = await searchTextMessages(
-        selectedUser._id,
-        searchQuery
-    );
+            const results = await searchTextMessages(
+                selectedUser._id,
+                searchQuery
+            );
 
-    setSearchResults(results || []);
+            setSearchResults(results || []);
 
-    const updatedSearches = [
-        searchQuery,
-        ...recentSearches.filter(
-            item => item !== searchQuery
-        )
-    ].slice(0, 5);
+            const updatedSearches = [
+                searchQuery,
+                ...recentSearches.filter(
+                    item => item !== searchQuery
+                )
+            ].slice(0, 5);
 
-    setRecentSearches(updatedSearches);
+            setRecentSearches(updatedSearches);
 
-    localStorage.setItem(
-        "recentSearches",
-        JSON.stringify(updatedSearches)
-    );
-}, 300);
+            localStorage.setItem(
+                "recentSearches",
+                JSON.stringify(updatedSearches)
+            );
+        }, 300);
         return () => clearTimeout(timer);
-    }, [searchQuery, selectedUser?._id]);
-    useEffect(() => {
-    const savedSearches = JSON.parse(
-        localStorage.getItem("recentSearches") || "[]"
-    );
+    }, [searchQuery, selectedUser?._id, recentSearches, searchTextMessages]);
 
-    setRecentSearches(savedSearches);
-}, []);
+    useEffect(() => {
+        const savedSearches = JSON.parse(
+            localStorage.getItem("recentSearches") || "[]"
+        );
+
+        Promise.resolve().then(() => setRecentSearches(savedSearches));
+    }, []);
 
     const scrollToMessage = (msgId) => {
         const msgElement = document.getElementById(`msg-${msgId}`);
@@ -171,9 +171,11 @@ export default function ChatWindow({ selectedUser, onBack, isMobileHidden }) {
         const lastMessage = messages[messages.length - 1];
 
         if (!selectedUser?._id || !lastMessage || lastMessage.senderId !== selectedUser._id) {
-            setQuickReplies([])
-            setLatestIncomingMessageId(null)
-            setQuickRepliesLoading(false)
+            Promise.resolve().then(() => {
+                setQuickReplies([])
+                setLatestIncomingMessageId(null)
+                setQuickRepliesLoading(false)
+            })
             return
         }
 
@@ -184,7 +186,7 @@ export default function ChatWindow({ selectedUser, onBack, isMobileHidden }) {
             try {
                 const res = await axiosInstance.get(`/messages/suggestions/${lastMessage._id}`)
                 setQuickReplies(res.data.suggestions || [])
-            } catch (error) {
+            } catch {
                 setQuickReplies([])
             } finally {
                 setQuickRepliesLoading(false)
@@ -371,18 +373,18 @@ const handleImage = async (e) => {
         clearAudio()
         setReplyTo(null)
 
-       try {
-   await sendMessage(payload)
-} catch (err) {
-   toast.error("Failed to send")
-} finally {
-   setSending(false)
-}
+        try {
+            await sendMessage(payload)
+        } catch {
+            toast.error("Failed to send")
+        } finally {
+            setSending(false)
+        }
     }
 
     const handleTyping = (e) => {
         const value = e.target.value
-setText(value)
+        setText(value)
 
 const suspiciousWords = ["spam", "scam", "fake", "hack"]
 
@@ -405,18 +407,7 @@ setShowSpamWarning(
     }
 
     const isOnline = selectedUser && onlineUsers.includes(selectedUser._id)
-    const totalMessages = messages.length
 
-const myMessages = messages.filter(
-    msg => msg.senderId === authUser?._id
-).length
-
-const receivedMessages =
-    totalMessages - myMessages
-
-const mediaMessages = messages.filter(
-    msg => msg.image || msg.audio
-).length
     const sharedMedia = messages.filter(msg => msg.image)
 
     if (!selectedUser) return (
