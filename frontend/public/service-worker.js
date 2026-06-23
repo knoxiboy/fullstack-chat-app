@@ -14,15 +14,15 @@ self.addEventListener("push", (event) => {
 self.addEventListener("notificationclick", (event) => {
     event.notification.close();
     event.waitUntil(
-        clients.matchAll({ type: "window" }).then((clientList) => {
+        self.clients.matchAll({ type: "window" }).then((clientList) => {
             for (let i = 0; i < clientList.length; i++) {
                 const client = clientList[i];
                 if (client.url === "/" && "focus" in client) {
                     return client.focus();
                 }
             }
-            if (clients.openWindow) {
-                return clients.openWindow("/");
+            if (self.clients.openWindow) {
+                return self.clients.openWindow("/");
             }
         })
     );

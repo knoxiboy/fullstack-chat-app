@@ -72,7 +72,7 @@ export default function ChatWindow({ selectedUser, onBack, isMobileHidden }) {
             const hasUnseen = messages.some(m => m.senderId === selectedUser._id && m.status !== "seen");
             if (hasUnseen) markMessagesAsSeen(selectedUser._id);
         }
-    }, [selectedUser?._id, messages.length]);
+    }, [selectedUser?._id, messages, markMessagesAsSeen]);
 
     // Scroll to bottom on new messages — but NOT when older messages are prepended by loadMore
     const prevMsgCountRef = useRef(0)

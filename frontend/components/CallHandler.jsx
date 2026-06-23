@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import toast from "react-hot-toast";
 import { Phone, Video, PhoneOff, Mic, MicOff, Camera, CameraOff } from "lucide-react";
 import useCallStore from "../src/store/useCallStore";
@@ -17,6 +17,46 @@ export default function CallHandler() {
     const [callDuration, setCallDuration] = useState(0);
     const callTimerRef = useRef(null);
 
+    const setupMedia = useCallback(async (type) => {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ 
+                video: type === "video", 
+                audio: true 
+            });
+            setLocalStream(stream);
+            return stream;
+        } catch (error) {
+            console.error("Failed to get local stream", error);
+            toast.error("Could not access camera/microphone. Please check permissions.");
+            return null;
+        }
+    }, [setLocalStream]);
+
+    const createPeer = useCallback((stream, toUser) => {
+        const socket = getSocket();
+        const pc = new RTCPeerConnection({
+            iceServers: [
+                { urls: "stun:stun.l.google.com:19302" },
+                { urls: "stun:global.stun.twilio.com:3478" }
+            ]
+        });
+
+        stream.getTracks().forEach(track => pc.addTrack(track, stream));
+
+        pc.ontrack = (event) => {
+            setRemoteStream(event.streams[0]);
+        };
+
+        pc.onicecandidate = (event) => {
+            if (event.candidate) {
+                socket.emit("iceCandidate", { to: toUser, candidate: event.candidate });
+            }
+        };
+
+        setPeer(pc);
+        return pc;
+    }, [setRemoteStream, setPeer]);
+
     useEffect(() => {
         if (call?.hasAccepted && remoteStream) {
             callTimerRef.current = setInterval(() => setCallDuration(d => d + 1), 1000);
@@ -25,7 +65,9 @@ export default function CallHandler() {
     }, [call?.hasAccepted, remoteStream]);
 
     useEffect(() => {
-        if (!call) setCallDuration(0);
+        if (!call) {
+            Promise.resolve().then(() => setCallDuration(0));
+        }
     }, [call]);
 
     useEffect(() => {
@@ -84,8 +126,8 @@ export default function CallHandler() {
     // Handle initiating outgoing calls
     useEffect(() => {
         if (call && !call.isReceivingCall && !peerConnection && !isConnecting) {
-            setIsConnecting(true);
             const startCall = async () => {
+                setIsConnecting(true);
                 const stream = await setupMedia(call.type);
                 if (!stream) {
                     clearCall();
@@ -106,56 +148,18 @@ export default function CallHandler() {
             };
             startCall();
         }
-    }, [call, peerConnection, isConnecting, authUser]);
+    }, [call, peerConnection, isConnecting, authUser, clearCall, createPeer, setupMedia]);
 
     // Cleanup on call end
     useEffect(() => {
         if (!call) {
-            setIsConnecting(false);
-            setIsMuted(false);
-            setIsVideoOff(false);
+            Promise.resolve().then(() => {
+                setIsConnecting(false);
+                setIsMuted(false);
+                setIsVideoOff(false);
+            });
         }
     }, [call]);
-
-    const setupMedia = async (type) => {
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ 
-                video: type === "video", 
-                audio: true 
-            });
-            setLocalStream(stream);
-            return stream;
-        } catch (error) {
-            console.error("Failed to get local stream", error);
-            toast.error("Could not access camera/microphone. Please check permissions.");
-            return null;
-        }
-    };
-
-    const createPeer = (stream, toUser) => {
-        const socket = getSocket();
-        const pc = new RTCPeerConnection({
-            iceServers: [
-                { urls: "stun:stun.l.google.com:19302" },
-                { urls: "stun:global.stun.twilio.com:3478" }
-            ]
-        });
-
-        stream.getTracks().forEach(track => pc.addTrack(track, stream));
-
-        pc.ontrack = (event) => {
-            setRemoteStream(event.streams[0]);
-        };
-
-        pc.onicecandidate = (event) => {
-            if (event.candidate) {
-                socket.emit("iceCandidate", { to: toUser, candidate: event.candidate });
-            }
-        };
-
-        setPeer(pc);
-        return pc;
-    };
 
     const answerCall = async () => {
         const socket = getSocket();

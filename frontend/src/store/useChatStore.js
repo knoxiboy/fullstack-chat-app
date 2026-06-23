@@ -65,7 +65,7 @@ const useChatStore = create((set, get) => ({
                 messages: [...res.data.messages, ...messages],
                 hasMore: res.data.hasMore,
             });
-        } catch (error) {
+        } catch {
             toast.error("Failed to load older messages");
         } finally {
             set({ isLoadingMore: false });
@@ -144,7 +144,7 @@ const useChatStore = create((set, get) => ({
                     msg._id === messageId ? { ...msg, reactions: res.data } : msg
                 ),
             }));
-        } catch (error) {
+        } catch {
             toast.error("Failed to add reaction");
         }
     },

@@ -13,7 +13,10 @@ export default function NewChatModal({ onSelectUser, onClose }) {
     const [loading, setLoading] = useState(false)
 
     useEffect(() => {
-        if (!query.trim()) { setResults([]); return }
+        if (!query.trim()) {
+            Promise.resolve().then(() => setResults([]));
+            return;
+        }
         const t = setTimeout(async () => {
             setLoading(true)
             const data = await searchUsers(query)

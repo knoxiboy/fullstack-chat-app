@@ -1,6 +1,5 @@
 import { useState } from "react"
 import { Camera, Pencil } from "lucide-react"
-import toast from "react-hot-toast"
 import useAuthStore from "../src/store/useAuthStore"
 
 export default function ProfilePage() {

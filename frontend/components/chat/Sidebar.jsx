@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useState } from "react"
 import { Search, PenSquare } from "lucide-react"
 import useChatStore from "../../src/store/useChatStore"
 import useAuthStore from "../../src/store/useAuthStore"
@@ -15,8 +15,6 @@ export default function Sidebar({ selectedUser, onSelectUser, isMobileHidden }) 
     const { onlineUsers } = useAuthStore()
     const [search, setSearch] = useState("")
     const [showNewChat, setShowNewChat] = useState(false)
-
-    const previousOnlineRef = useRef(onlineUsers)
 
     useEffect(() => {
         getUsers()
